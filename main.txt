@@ -1,0 +1,72 @@
+welcome to webcrawler
+
+
+
+from bs4 import BeautifulSoup
+from urllib.request import urlopen
+import requests
+
+headers={}
+payload={}
+
+
+#!pip install ultimate_sitemap_parser
+from usp.tree import sitemap_tree_for_homepage
+
+
+tree = sitemap_tree_for_homepage('https://www.icicibank.com/')
+urls = []
+pdfs = []
+for page in tree.all_pages():
+  url = str(page).split("url=")[1].split(", priority")[0]
+  #print(url)
+  #break
+  if 'faq' in url.lower():
+    urls.append(url)
+  #if 'pdf' in url.lower():
+  #  pdfs.append(url)
+print(urls)
+
+
+
+
+
+
+strips_all=[]
+for url in urls:
+  #url = url
+  response = requests.get(url)
+
+  #response = requests.request("GET", url, headers=headers, data=payload)
+  html = response.text
+  #print(type(html))
+
+  soup = BeautifulSoup(html, "html.parser")
+
+
+  for script in soup(["script", "style"]):
+      script.decompose()
+
+  strips = list(soup.stripped_strings)
+  strips_all.append(strips)
+strips_all
+
+
+
+
+
+q = []
+a = []
+for strips in strips_all:
+  for index, line in enumerate(strips): 
+
+    if '?' in line:
+      print("Question: ", line)
+      q.append(line)
+      answer = []
+      for index1, line1 in enumerate(strips[index+1:]):
+        if '?' in line1:
+          break
+        answer.append(line1)
+      print('Answer: ', " ".join(answer))
+      a.append(answer)
